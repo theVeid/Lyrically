@@ -62,19 +62,25 @@ public class FetchLyrics extends IntentService {
     }
 
     void getLyrics() {
+        String DUCKDUCKGO_SEARCH_URL = "https://duckduckgo.com/html?q=";
+        String resultSelector = ".results > .result";
+        String resultLinkSelector = ".result__url";
         // same code as the doInBackground function from LyricsService.java
         try {
             String artistU = artist.replaceAll(" ", "+");
             String trackU = track.replaceAll(" ", "+");
-            String url = "https://www.google.com/search?q=" + URLEncoder.encode("lyrics+azlyrics+" + artistU + "+" + trackU, "UTF-8");
-            Document document = Jsoup.connect(url).userAgent("Mozilla/5.0").timeout(10000).get();
-            Element results = document.select("h3.r > a").first();
+            String url = DUCKDUCKGO_SEARCH_URL + URLEncoder.encode("lyrics+azlyrics+" + artistU + "+" + trackU, "UTF-8");
+            Document document = Jsoup.connect(url).followRedirects(true).timeout(10000).get();
+            Element result = document.select(resultSelector).first().select(resultLinkSelector).first();
 
-            String lyricURL = results.attr("href").substring(7, results.attr("href").indexOf("&"));
+//            String lyricURL = result.attr("href").substring(7, result.attr("href").indexOf("&"));
+            String lyricURL = result.text();
             Element element;
             String temp;
 
             if (lyricURL.contains("azlyrics.com/lyrics")) {
+                String protocol = lyricURL.contains("http") ? "" : "https://";
+                lyricURL = protocol + lyricURL;
                 document = Jsoup.connect(lyricURL).userAgent("Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2228.0 Safari/537.36").get();
                 String page = document.toString();
 
@@ -84,11 +90,11 @@ public class FetchLyrics extends IntentService {
 
             } else {
 
-                url = "https://www.google.com/search?q=" + URLEncoder.encode("genius+" + artistU + "+" + trackU + "lyrics", "UTF-8");
+                url = DUCKDUCKGO_SEARCH_URL + URLEncoder.encode("genius+" + artistU + "+" + trackU + "lyrics", "UTF-8");
                 document = Jsoup.connect(url).userAgent("Mozilla/5.0").timeout(10000).get();
 
-                results = document.select("h3.r > a").first();
-                lyricURL = results.attr("href").substring(7, results.attr("href").indexOf("&"));
+                result = document.select(resultSelector).first().select(resultLinkSelector).first();
+                lyricURL = result.attr("href").substring(7, result.attr("href").indexOf("&"));
                 if (lyricURL.contains("genius")) {
 
                     document = Jsoup.connect(lyricURL).userAgent("Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2228.0 Safari/537.36").get();
@@ -103,13 +109,13 @@ public class FetchLyrics extends IntentService {
                     temp = element.toString().substring(0, element.toString().indexOf("<!--/sse-->"));
                 } else {
 
-                    url = "https://www.google.com/search?q=" + URLEncoder.encode("lyrics.wikia+" + trackU + "+" + artistU, "UTF-8");
+                    url = DUCKDUCKGO_SEARCH_URL + URLEncoder.encode("lyrics.wikia+" + trackU + "+" + artistU, "UTF-8");
 
 
                     document = Jsoup.connect(url).userAgent("Mozilla/5.0").timeout(10000).get();
 
-                    results = document.select("h3.r > a").first();
-                    lyricURL = results.attr("href").substring(7, results.attr("href").indexOf("&"));
+                    result = document.select(resultSelector).first().select(resultLinkSelector).first();
+                    lyricURL = result.attr("href").substring(7, result.attr("href").indexOf("&"));
                     document = Jsoup.connect(lyricURL).userAgent("Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2228.0 Safari/537.36").get();
 
                     element = document.select("div[class=lyricbox]").first();

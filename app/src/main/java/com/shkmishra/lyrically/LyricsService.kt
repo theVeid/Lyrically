@@ -534,9 +534,9 @@ class LyricsService : Service() {
                 try {
                     title = "$artist - $track"
 
-                    var url = "https://www.google.com/search?q=" + URLEncoder.encode("lyrics+azlyrics+$artistU+$trackU", "UTF-8") // Google URL
+                    var url = "https://duckduckgo.com/?q=" + URLEncoder.encode("lyrics+azlyrics+$artistU+$trackU", "UTF-8") // Google URL
                     var document = Jsoup.connect(url).userAgent("Mozilla/5.0").timeout(10000).get()
-                    var results = document.select("h3.r > a").first()
+                    var results = document.select(".results > .result").first()
 
                     var lyricURL = results.attr("href").substring(7, results.attr("href").indexOf("&")) // grabbing the first result
                     val element: Element
@@ -554,10 +554,10 @@ class LyricsService : Service() {
                         temp = page
                     } else {
 
-                        url = "https://www.google.com/search?q=" + URLEncoder.encode("genius+" + artistU + "+" + trackU + "lyrics", "UTF-8")
+                        url = "https://duckduckgo.com/?q=" + URLEncoder.encode("genius+" + artistU + "+" + trackU + "lyrics", "UTF-8")
                         document = Jsoup.connect(url).userAgent("Mozilla/5.0").timeout(10000).get()
 
-                        results = document.select("h3.r > a").first()
+                        results = document.select(".results > .result").first()
                         lyricURL = results.attr("href").substring(7, results.attr("href").indexOf("&"))
                         println(url)
                         println(lyricURL)
@@ -575,10 +575,10 @@ class LyricsService : Service() {
                             temp = element.toString().substring(0, element.toString().indexOf("<!--/sse-->"))
                         } else {
 
-                            url = "https://www.google.com/search?q=" + URLEncoder.encode("lyrics.wikia+$trackU+$artistU", "UTF-8")
+                            url = "https://duckduckgo.com/?q=" + URLEncoder.encode("lyrics.wikia+$trackU+$artistU", "UTF-8")
                             document = Jsoup.connect(url).userAgent("Mozilla/5.0").timeout(10000).get()
 
-                            results = document.select("h3.r > a").first()
+                            results = document.select(".results > .result").first()
                             lyricURL = results.attr("href").substring(7, results.attr("href").indexOf("&"))
                             println(url)
                             println(lyricURL)
