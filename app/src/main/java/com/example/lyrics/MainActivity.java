@@ -10,15 +10,15 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Environment;
 import android.provider.MediaStore;
 import android.provider.Settings;
-import android.support.annotation.Nullable;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.content.ContextCompat;
-import android.support.v7.app.AlertDialog;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.CardView;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.cardview.widget.CardView;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
+
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -41,6 +41,10 @@ public class MainActivity extends AppCompatActivity {
     ImageView overlayCheck;
     ImageView storageCheck;
 
+    boolean storageFolderCreated;
+
+    private static final int STORAGE_PERMISSION_REQUEST = 112;
+
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         setContentView(R.layout.activity_main);
@@ -49,69 +53,76 @@ public class MainActivity extends AppCompatActivity {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)
             checkForPermissions();
 
-        File file = new File(Environment.getExternalStorageDirectory(), "Lyrically");
-        if (!file.exists())
-            file.mkdirs();
+        File file = new File(getExternalFilesDir(null), "Lyrics");
+        if (file.exists()) {
+            storageFolderCreated = true;
+        } else {
+            storageFolderCreated = file.mkdir();
+        }
 
-        cardView1 = (CardView) findViewById(R.id.card1);  // download lyrics
-        cardView2 = (CardView) findViewById(R.id.card2);  // watch tutorial
-        cardView3 = (CardView) findViewById(R.id.card3);  // view source code
-        cardView4 = (CardView) findViewById(R.id.card4);  // view other apps
+        cardView1 = findViewById(R.id.card1);  // download lyrics
+        cardView2 = findViewById(R.id.card2);  // watch tutorial
+        cardView3 = findViewById(R.id.card3);  // view source code
+        cardView4 = findViewById(R.id.card4);  // view other apps
 
         cardView1.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
 
-                // progress dialog shown while we get a list of songs on the device
-                ProgressDialog progressDialog = new ProgressDialog(MainActivity.this, R.style.DownloadDialog);
-                progressDialog.setMessage(getResources().getString(R.string.please_wait));
-                progressDialog.setCancelable(false);
-                progressDialog.show();
+                if (storageFolderCreated) {
+                    // progress dialog shown while we get a list of songs on the device
+                    ProgressDialog progressDialog = new ProgressDialog(MainActivity.this, R.style.DownloadDialog);
+                    progressDialog.setMessage(getResources().getString(R.string.please_wait));
+                    progressDialog.setCancelable(false);
+                    progressDialog.show();
 
-                final ArrayList<Song> songArrayList = new ArrayList<>();
-                // get the list of songs present on the device
-                String selection = MediaStore.Audio.Media.IS_MUSIC + " != 0";
-                String[] projection = {
-                        MediaStore.Audio.Media._ID,
-                        MediaStore.Audio.Media.ARTIST,
-                        MediaStore.Audio.Media.TITLE,
-                        MediaStore.Audio.Media.DURATION
-                };
-                Cursor cursor = getContentResolver().query(
-                        MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
-                        projection,
-                        selection,
-                        null,
-                        null);
-                while (cursor.moveToNext()) {
-                    String artist = cursor.getString(1);
-                    String title = cursor.getString(2);
-                    long songID = Long.parseLong(cursor.getString(0));
-                    long duration = Long.parseLong(cursor.getString(3));
-                    if ((duration / 1000) > 40) {
-                        songArrayList.add(new Song(title, artist, songID));
+                    final ArrayList<Song> songArrayList = new ArrayList<>();
+                    // get the list of songs present on the device
+                    String selection = MediaStore.Audio.Media.IS_MUSIC + " != 0";
+                    String[] projection = {
+                            MediaStore.Audio.Media._ID,
+                            MediaStore.Audio.Media.ARTIST,
+                            MediaStore.Audio.Media.TITLE,
+                            MediaStore.Audio.Media.DURATION
+                    };
+                    Cursor cursor = getContentResolver().query(
+                            MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
+                            projection,
+                            selection,
+                            null,
+                            null);
+                    while (cursor.moveToNext()) {
+                        String artist = cursor.getString(1);
+                        String title = cursor.getString(2);
+                        long songID = Long.parseLong(cursor.getString(0));
+                        long duration = Long.parseLong(cursor.getString(3));
+                        if ((duration / 1000) > 40) {
+                            songArrayList.add(new Song(title, artist, songID));
+                        }
+
                     }
+                    cursor.close();
+                    progressDialog.dismiss();
 
+                    // yes-no dialog before we start downloading the lyrics
+                    AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this, R.style.DownloadDialog);
+                    builder.setMessage(getResources().getString(R.string.download_prompt, songArrayList.size()))
+                        .setPositiveButton(getString(R.string.yes), new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                Intent intent = new Intent(getApplicationContext(), DownloadService.class);
+                                intent.putExtra("songs", songArrayList);
+                                startService(intent);
+                            }
+                        })
+                        .setNegativeButton(getString(R.string.no), new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                dialog.dismiss();
+                            }
+                        })
+                        .create().show();
                 }
-                cursor.close();
-                progressDialog.dismiss();
-
-                // yes-no dialog before we start downloading the lyrics
-                AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this, R.style.DownloadDialog);
-                builder.setMessage(getResources().getString(R.string.download_prompt, songArrayList.size())).setPositiveButton(getString(R.string.yes), new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        Intent intent = new Intent(getApplicationContext(), DownloadService.class);
-                        intent.putExtra("songs", songArrayList);
-                        startService(intent);
-                    }
-                }).setNegativeButton(getString(R.string.no), new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        dialog.dismiss();
-                    }
-                }).create().show();
-
             }
         });
 
@@ -146,32 +157,35 @@ public class MainActivity extends AppCompatActivity {
     @SuppressLint("NewApi")
     private void checkForPermissions() {
 
-        boolean storagePermission = (checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED);
-        boolean overlayPermission = Settings.canDrawOverlays(this);
+        final String[] storagePermissions = {Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.READ_EXTERNAL_STORAGE};
+
+
+        boolean isStoragePermission = (checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED);
+        boolean isOverlayPermission = Settings.canDrawOverlays(this);
 
         // if either of the permissions haven't been granted, we show the permissions dialog
-        if (!storagePermission || !overlayPermission) {
+        if (!isStoragePermission || !isOverlayPermission) {
             AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(this);
             LayoutInflater inflater = this.getLayoutInflater();
             dialogBuilder.setCancelable(false);
             dialogView = inflater.inflate(R.layout.permissions_dialog, null);
             dialogBuilder.setView(dialogView);
 
-            overlayButton = (Button) dialogView.findViewById(R.id.button_overlay);
-            storageButton = (Button) dialogView.findViewById(R.id.button_storage);
+            overlayButton = dialogView.findViewById(R.id.button_overlay);
+            storageButton = dialogView.findViewById(R.id.button_storage);
 
-            overlayCheck = (ImageView) dialogView.findViewById(R.id.overlay_check);
-            storageCheck = (ImageView) dialogView.findViewById(R.id.storage_check);
+            overlayCheck = dialogView.findViewById(R.id.overlay_check);
+            storageCheck = dialogView.findViewById(R.id.storage_check);
 
             // storage permission already granted; disable the button
-            if (storagePermission) {
+            if (isStoragePermission) {
                 storageButton.setClickable(false);
                 storageCheck.setVisibility(View.VISIBLE);
                 storageButton.setBackgroundTintList(ContextCompat.getColorStateList(this, R.color.colorPrimary));
             }
 
             // draw over other apps permission already granted; disable the button
-            if (overlayPermission) {
+            if (isOverlayPermission) {
                 overlayButton.setClickable(false);
                 overlayCheck.setVisibility(View.VISIBLE);
                 overlayButton.setBackgroundTintList(ContextCompat.getColorStateList(this, R.color.colorPrimary));
@@ -189,7 +203,7 @@ public class MainActivity extends AppCompatActivity {
             storageButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.READ_EXTERNAL_STORAGE}, 12);
+                    ActivityCompat.requestPermissions(MainActivity.this, storagePermissions, STORAGE_PERMISSION_REQUEST);
                 }
             });
 
@@ -218,9 +232,9 @@ public class MainActivity extends AppCompatActivity {
     @Override
     @SuppressLint("NewApi")
     public void onRequestPermissionsResult(int requestCode,
-                                           String permissions[], int[] grantResults) {
+                                           String[] permissions, int[] grantResults) {
         switch (requestCode) {
-            case 12: {
+            case STORAGE_PERMISSION_REQUEST: {
                 if (grantResults.length > 0
                         && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
 

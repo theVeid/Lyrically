@@ -1,0 +1,52 @@
+<resources>
+    <string name="app_name">Lyrically</string>
+    <string name="menuSettings">設定</string>
+    <string name="downloadingLyrics">歌詞のダウンロード中</string>
+    <string name="lyricsDownloaded">歌詞をダウンロードしました</string>
+    <string name="noLyricsFound">歌詞が見つかりません</string>
+
+
+    <string name="download">ダウンロード</string>
+    <string name="downloadHelp">オフラインで使用するための歌詞をダウンロードします</string>
+
+
+    <string name="tutorial">チュートリアル</string>
+    <string name="tutorialHelp">このアプリの使い方を学びます</string>
+
+
+    <string name="source">ソース</string>
+    <string name="sourceHelp">このアプリのソースコードを表示します</string>
+
+
+    <string name="about">他のアプリ</string>
+    <string name="aboutHelp">私の他のアプリをチェックしてください</string>
+    <string name="lyricsHint">歌詞はここに表示されます</string>
+    <string name="updateTitle">利用可能な更新</string>
+    <string name="updateText">更新するにはここをクリック</string>
+    <string name="draw_over_other_apps">オーバーレイ許可</string>
+    <string name="read_write_storage">読み取り/書き込み記憶域</string>
+    <string name="permissions_toast">Lyrically - 適切な許可を与えてください</string>
+    <string name="permissions_needed">必要なアクセス許可</string>
+    <string name="download_prompt">歌詞を%1$d曲ダウンロード?</string>
+    <string name="yes">はい</string>
+    <string name="no">いいえ</string>
+    <string name="please_wait">お待ちください…</string>
+    <string name="noLyricsFoundNotification">歌詞が見つからない曲を見るには、ここをクリックしてください</string>
+
+    <string name="trigger_settings_title">トリガー設定</string>
+    <string name="trigger_pos_summary">スワイプを検出する領域の位置</string>
+    <string name="trigger_pos_title">トリガー位置</string>
+    <string name="trigger_offset_summary">トリガーオフセット</string>
+    <string name="trigger_swipe_direction_summary">歌詞を見るためにスワイプする方向</string>
+    <string name="trigger_swipe_direction_title">スワイプの方向</string>
+    <string name="trigger_width_summary">トリガーの幅</string>
+    <string name="trigger_height_summary">トリガーの高さ</string>
+    <string name="trigger_vibration_summary">トリガー検出時の振動を有効または無効にします</string>
+    <string name="trigger_vibration_title">バイブレーション</string>
+    <string name="lyrics_panel_settings_title">歌詞パネル設定</string>
+    <string name="lyrics_panel_height_summary">歌詞パネルの高さ</string>
+    <string name="cache_settings_title">キャッシュ</string>
+    <string name="cache_all_summary">Lyrically が表示する歌詞をすべてキャッシュします</string>
+    <string name="cache_all_title">すべてキャッシュ</string>
+
+</resources>

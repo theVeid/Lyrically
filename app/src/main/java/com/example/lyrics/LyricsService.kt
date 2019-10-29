@@ -1,4 +1,4 @@
-package com.shkmishra.lyrically
+package com.example.lyrics
 
 import android.annotation.SuppressLint
 import android.app.Notification
@@ -15,16 +15,15 @@ import android.os.*
 import android.preference.PreferenceManager
 import android.provider.MediaStore
 import android.provider.Settings
-import android.support.v4.widget.NestedScrollView
-import android.support.v4.widget.SwipeRefreshLayout
-import android.support.v7.app.NotificationCompat
+import androidx.core.widget.NestedScrollView
+import androidx.core.app.NotificationCompat
 import android.util.DisplayMetrics
 import android.view.*
 import android.view.animation.Animation
 import android.view.animation.AnimationUtils
 import android.widget.*
-import kotlinx.coroutines.experimental.*
-import kotlinx.coroutines.experimental.android.UI
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+import kotlinx.coroutines.*
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Element
 import java.io.*
@@ -66,7 +65,6 @@ class LyricsService : Service() {
     private var asyncJob: Job? = null
 
 
-    @SuppressLint("NewApi")
     override fun onStartCommand(intent: Intent, flags: Int, startId: Int): Int {
 
 
@@ -79,7 +77,7 @@ class LyricsService : Service() {
 
         if (vibrator != null) { // this means the service is already running; so we just handle the intent and update the lyrics sheet
             // make the notification persistent
-            mBuilder.setContentTitle("Lyrically")
+            mBuilder.setContentTitle("Lyrics")
                     .setOngoing(true)
                     .setContentIntent(pendingIntent)
                     .setPriority(Notification.PRIORITY_MIN)
@@ -96,12 +94,12 @@ class LyricsService : Service() {
         windowManager = getSystemService(Context.WINDOW_SERVICE) as WindowManager
         windowManager.defaultDisplay.getMetrics(displayMetrics)
 
-        val width = sharedPreferences.getInt("triggerWidth", 10) * 2
-        val height = sharedPreferences.getInt("triggerHeight", 10) * 2
+        val width = sharedPreferences.getInt("triggerWidth", 50) * 2
+        val height = sharedPreferences.getInt("triggerHeight", 50) * 2
 
         cacheAll = sharedPreferences.getBoolean("cacheAll", false)
         getSongsList() // get list of songs present on the device
-        val file = File(Environment.getExternalStorageDirectory(), "Lyrically")
+        val file = File(getExternalFilesDir(null), "Lyrics")
         if (!file.exists())
             file.mkdirs()
 
@@ -109,9 +107,9 @@ class LyricsService : Service() {
         triggerParams = WindowManager.LayoutParams(
                 width, height,
 
-                WindowManager.LayoutParams.TYPE_PHONE,
+                WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
 
-                WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS or WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
+                WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
                 PixelFormat.TRANSLUCENT)
 
 
@@ -122,7 +120,7 @@ class LyricsService : Service() {
                 WindowManager.LayoutParams.MATCH_PARENT,
                 panelHeight,
 
-                WindowManager.LayoutParams.TYPE_PHONE,
+                WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
 
                 WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS or WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
                 PixelFormat.TRANSLUCENT)
@@ -133,7 +131,7 @@ class LyricsService : Service() {
         lyricsPanelParams.y = 0
 
 
-        val triggerPosition = Integer.parseInt(sharedPreferences.getString("triggerPos", "1")) // 1 = left side of the screen, 2 = right side
+        val triggerPosition = Integer.parseInt(sharedPreferences.getString("triggerPos", "1")!!); // 1 = left side of the screen, 2 = right side
         val offset = sharedPreferences.getInt("triggerOffset", 10).toDouble() / 100
 
         when (triggerPosition) {
@@ -146,6 +144,7 @@ class LyricsService : Service() {
 
         val layoutInflater = getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
         trigger = View(this)
+        trigger.setBackgroundColor(resources.getColor(R.color.colorAccent))
 
 
         bottomLayout = layoutInflater.inflate(R.layout.lyrics_sheet, null)
@@ -161,7 +160,7 @@ class LyricsService : Service() {
 
         lyricsTV.setTextColor(Color.parseColor(sharedPreferences.getString("lyricsTextColor", "#FFFFFF")))
         titleTV.setTextColor(Color.parseColor(sharedPreferences.getString("songTitleColor", "#fd5622")))
-        bottomLayout.findViewById(R.id.content).setBackgroundColor(Color.parseColor(sharedPreferences.getString("panelColor", "#383F47")))
+        bottomLayout.findViewById<View>(R.id.content).setBackgroundColor(Color.parseColor(sharedPreferences.getString("panelColor", "#383F47")))
         progressBar.indeterminateDrawable.setColorFilter(Color.parseColor(sharedPreferences.getString("songTitleColor", "#fd5622")), android.graphics.PorterDuff.Mode.SRC_IN)
         refresh = bottomLayout.findViewById(R.id.refresh) as ImageView
         val swipeRefreshLayout = bottomLayout.findViewById(R.id.swipeRefresh) as SwipeRefreshLayout
@@ -188,13 +187,15 @@ class LyricsService : Service() {
         }))
 
 
-        val swipeDirection = Integer.parseInt(sharedPreferences.getString("swipeDirection", "1")) // swipe direction for the invisible trigger
+        val swipeDirection = Integer.parseInt(sharedPreferences.getString("swipeDirection", "1")!!) // swipe direction for the invisible trigger
         trigger.setOnTouchListener(object : OnSwipeTouchListener(this) {
             override fun onSwipeUp() {
                 super.onSwipeUp()
                 if (swipeDirection == 1) {
                     vibrate()
-                    windowManager.addView(container, lyricsPanelParams)
+                    try {
+                        windowManager.addView(container, lyricsPanelParams)
+                    } catch (e: Exception) {}
                     container.addView(bottomLayout)
                     val animation = AnimationUtils.loadAnimation(applicationContext, R.anim.slide_up)
                     bottomLayout.startAnimation(animation)
@@ -267,7 +268,7 @@ class LyricsService : Service() {
         pendingIntent = PendingIntent.getService(this, 1, showLyrics, PendingIntent.FLAG_UPDATE_CURRENT)
 
 
-        mBuilder.setContentTitle("Lyrically")
+        mBuilder.setContentTitle("Lyrics")
                 .setOngoing(true)
                 .setContentIntent(pendingIntent)
                 .setPriority(Notification.PRIORITY_MIN)
@@ -430,10 +431,10 @@ class LyricsService : Service() {
 
     private fun getLyrics(song: Song): String {
 
-        val path = Environment.getExternalStorageDirectory().toString() + File.separator + "Lyrically/"
+        val path = getExternalFilesDir(null).toString() + File.separator + "Lyrics/"
         val directory = File(path)
         if (directory.exists())
-            lyricsFiles = directory.listFiles() // files present in the Lyrically folder
+            lyricsFiles = directory.listFiles() // files present in the Lyrics folder
 
         if (lyricsFiles == null)
             return ""
@@ -460,10 +461,10 @@ class LyricsService : Service() {
 
         val fileName = Integer.toString((artist + track).hashCode())
 
-        val path = Environment.getExternalStorageDirectory().toString() + File.separator + "Lyrically/"
+        val path = getExternalFilesDir(null).toString() + File.separator + "Lyrics/"
         val directory = File(path)
         if (directory.exists())
-            lyricsFiles = directory.listFiles()    // files present in the Lyrically folder
+            lyricsFiles = directory.listFiles()    // files present in the Lyrics folder
 
         if (lyricsFiles == null)
             return ""
@@ -487,7 +488,7 @@ class LyricsService : Service() {
     private fun saveLyricsOffline(lyrics: String) {
         for (song in songArrayList) {
             if (song.artist.equals(artist, ignoreCase = true) && song.track.equals(track, ignoreCase = true)) {
-                val path = File(Environment.getExternalStorageDirectory().toString() + File.separator + "Lyrically/")
+                val path = File(getExternalFilesDir(null).toString() + File.separator + "Lyrics/")
                 val lyricsFile = File(path, song.id.toString() + ".txt")
                 try {
                     val fileWriter = FileWriter(lyricsFile)
@@ -505,7 +506,7 @@ class LyricsService : Service() {
     private fun saveLyricsStreaming(lyrics: String) {
         val fileName = Integer.toString((artist + track).hashCode())
 
-        val path = File(Environment.getExternalStorageDirectory().toString() + File.separator + "Lyrically/")
+        val path = File(getExternalFilesDir(null).toString() + File.separator + "Lyrics/")
         val lyricsFile = File(path, "$fileName.txt")
         if (lyricsFile.exists())
             return
@@ -528,43 +529,43 @@ class LyricsService : Service() {
          - Google the artist + song name + provider name
          - Grab the first result and if it is from the provider we wanted, get the lyrics
           */
-        asyncJob = launch(UI) {
+        val parentJob = Job();
+        val coroutineScope = CoroutineScope(Dispatchers.IO + parentJob);
+
+        asyncJob = coroutineScope.launch {
             progressBar.visibility = View.VISIBLE
-            val result = async(context = CommonPool, parent = asyncJob) {
+            val result = async {
+                val SEARCH_BASE_URL = "https://duckduckgo.com/html?q=";
+
+                fun getLyricsUrlFromSearchUrl(url: String): String {
+                    var lyricUrl = "";
+
+                    var document = Jsoup.connect(SEARCH_BASE_URL + url).userAgent("Mozilla/5.0").timeout(10000).get()
+                    var result = document.select(".results > .result").first().select(".result__url").first()
+
+                    return result.text()
+                }
+
                 try {
                     title = "$artist - $track"
 
-                    var url = "https://www.google.com/search?q=" + URLEncoder.encode("lyrics+azlyrics+$artistU+$trackU", "UTF-8") // Google URL
-                    var document = Jsoup.connect(url).userAgent("Mozilla/5.0").timeout(10000).get()
-                    var results = document.select("h3.r > a").first()
-
-                    var lyricURL = results.attr("href").substring(7, results.attr("href").indexOf("&")) // grabbing the first result
+                    var lyricURL = getLyricsUrlFromSearchUrl(URLEncoder.encode("lyrics+azlyrics+$artistU+$trackU", "UTF-8"))
                     val element: Element
                     var temp: String
-                    println(url)
-                    println(lyricURL)
-
 
                     if (lyricURL.contains("azlyrics.com/lyrics")) { // checking if from the provider we wanted
-                        document = Jsoup.connect(lyricURL).userAgent(USER_AGENT).get()
-                        var page = document.toString()
+                        val urlPrefix = if (lyricURL.contains("http")) "" else "https://"
+                        var page = Jsoup.connect(urlPrefix + lyricURL).userAgent(USER_AGENT).get().toString()
 
                         page = page.substring(page.indexOf("that. -->") + 9)
                         page = page.substring(0, page.indexOf("</div>"))
                         temp = page
                     } else {
-
-                        url = "https://www.google.com/search?q=" + URLEncoder.encode("genius+" + artistU + "+" + trackU + "lyrics", "UTF-8")
-                        document = Jsoup.connect(url).userAgent("Mozilla/5.0").timeout(10000).get()
-
-                        results = document.select("h3.r > a").first()
-                        lyricURL = results.attr("href").substring(7, results.attr("href").indexOf("&"))
-                        println(url)
-                        println(lyricURL)
+                        lyricURL = getLyricsUrlFromSearchUrl(URLEncoder.encode("genius+" + artistU + "+" + trackU + "lyrics", "UTF-8"))
 
                         if (lyricURL.contains("genius")) {
 
-                            document = Jsoup.connect(lyricURL).userAgent(USER_AGENT).get()
+                            var document = Jsoup.connect(lyricURL).userAgent(USER_AGENT).get()
 
                             val selector = document.select("div.h2")
                             for (e in selector) {
@@ -574,16 +575,9 @@ class LyricsService : Service() {
                             element = document.select("div[class=song_body-lyrics]").first()
                             temp = element.toString().substring(0, element.toString().indexOf("<!--/sse-->"))
                         } else {
+                            lyricURL = getLyricsUrlFromSearchUrl(URLEncoder.encode("lyrics.wikia+$trackU+$artistU", "UTF-8"))
 
-                            url = "https://www.google.com/search?q=" + URLEncoder.encode("lyrics.wikia+$trackU+$artistU", "UTF-8")
-                            document = Jsoup.connect(url).userAgent("Mozilla/5.0").timeout(10000).get()
-
-                            results = document.select("h3.r > a").first()
-                            lyricURL = results.attr("href").substring(7, results.attr("href").indexOf("&"))
-                            println(url)
-                            println(lyricURL)
-
-                            document = Jsoup.connect(lyricURL).userAgent(USER_AGENT).get()
+                            var document = Jsoup.connect(lyricURL).userAgent(USER_AGENT).get()
                             element = document.select("div[class=lyricbox]").first()
                             temp = element.toString()
 

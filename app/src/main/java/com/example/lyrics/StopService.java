@@ -3,7 +3,7 @@ package com.example.lyrics;
 import android.app.IntentService;
 import android.content.Intent;
 
-import com.shkmishra.lyrically.LyricsService;
+import com.example.lyrics.LyricsService;
 
 
 public class StopService extends IntentService {

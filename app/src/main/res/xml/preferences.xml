@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+
+
+    <PreferenceCategory android:title="@string/color_settings_title">
+
+        <com.example.lyrics.ColorPickerPreference
+            android:defaultValue="#383F47"
+            android:key="panelColor"
+            android:title="@string/color_lyrics_panel" />
+        <com.example.lyrics.ColorPickerPreference
+            android:defaultValue="#fd5622"
+            android:key="songTitleColor"
+            android:title="@string/color_song_title" />
+        <com.example.lyrics.ColorPickerPreference
+            android:defaultValue="#FFFFFF"
+            android:key="lyricsTextColor"
+            android:title="@string/color_lyrics" />
+    </PreferenceCategory>
+
+    <PreferenceCategory android:title="@string/trigger_settings_title">
+        <ListPreference
+            android:defaultValue="1"
+            android:entries="@array/triggerPos"
+            android:entryValues="@array/triggerPosValues"
+            android:key="triggerPos"
+            android:summary="@string/trigger_pos_summary"
+            android:title="@string/trigger_pos_title" />
+
+        <com.example.lyrics.SeekBarPreference
+            android:defaultValue="10"
+            android:key="triggerOffset"
+            android:summary="@string/trigger_offset_summary" />
+
+        <ListPreference
+            android:defaultValue="1"
+            android:entries="@array/triggerSwipeDirection"
+            android:entryValues="@array/triggerSwipeDirectionValues"
+            android:key="swipeDirection"
+            android:summary="@string/trigger_swipe_direction_summary"
+            android:title="@string/trigger_swipe_direction_title" />
+
+        <com.example.lyrics.SeekBarPreference
+            android:defaultValue="75"
+            android:key="triggerWidth"
+            android:summary="@string/trigger_width_summary" />
+
+
+        <com.example.lyrics.SeekBarPreference
+            android:defaultValue="75"
+            android:key="triggerHeight"
+            android:summary="@string/trigger_height_summary" />
+
+
+        <CheckBoxPreference
+            android:defaultValue="true"
+            android:key="triggerVibration"
+            android:summary="@string/trigger_vibration_summary"
+            android:title="@string/trigger_vibration_title" />
+
+    </PreferenceCategory>
+
+    <PreferenceCategory android:title="@string/lyrics_panel_settings_title">
+
+
+        <com.example.lyrics.SeekBarPreference2
+            android:defaultValue="60"
+            android:key="panelHeight"
+            android:summary="@string/lyrics_panel_height_summary" />
+
+
+    </PreferenceCategory>
+
+
+    <PreferenceCategory android:title="@string/cache_settings_title">
+
+        <CheckBoxPreference
+            android:key="cacheAll"
+            android:summary="@string/cache_all_summary"
+            android:title="@string/cache_all_title" />
+
+    </PreferenceCategory>
+
+    <PreferenceCategory android:title="@string/update_settings_title">
+
+        <CheckBoxPreference
+            android:defaultValue="true"
+            android:key="checkForUpdates"
+            android:summary="@string/check_updates_summary"
+            android:title="@string/check_updates_title" />
+
+    </PreferenceCategory>
+
+</PreferenceScreen>

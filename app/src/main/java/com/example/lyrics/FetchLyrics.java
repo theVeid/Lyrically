@@ -1,6 +1,7 @@
 package com.example.lyrics;
 
 import android.app.IntentService;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Environment;
 import android.os.Message;
@@ -39,7 +40,7 @@ public class FetchLyrics extends IntentService {
         messenger = (Messenger) intent.getExtras().get("messenger");
 
 
-        File path = new File(Environment.getExternalStorageDirectory() + File.separator + "Lyrically/");
+        File path = new File(getExternalFilesDir(null) + File.separator + "Lyrics/");
         notFound = new File(path, "No Lyrics Found.txt");
 
         lyricsFile = new File(path, songID + ".txt");
@@ -61,22 +62,36 @@ public class FetchLyrics extends IntentService {
 
     }
 
+    String getlyricsUrlFromSearchUrl(String url) {
+        String lyricURL = "";
+
+        try {
+            Document document = Jsoup.connect(url).userAgent("Mozilla/5.0").timeout(10000).get();
+            Element result = document.select(".results > .result").first().select(".result__url").first();
+
+            lyricURL = result.text();
+        } catch (IOException e) {
+            e.printStackTrace();
+            noLyricsFound();
+        }
+
+        return lyricURL;
+    }
+
     void getLyrics() {
         // same code as the doInBackground function from LyricsService.java
+        String SEARCH_BASE_URL = "https://duckduckgo.com/html?q=";
         try {
             String artistU = artist.replaceAll(" ", "+");
             String trackU = track.replaceAll(" ", "+");
-            String url = "https://www.google.com/search?q=" + URLEncoder.encode("lyrics+azlyrics+" + artistU + "+" + trackU, "UTF-8");
-            Document document = Jsoup.connect(url).userAgent("Mozilla/5.0").timeout(10000).get();
-            Element results = document.select("h3.r > a").first();
 
-            String lyricURL = results.attr("href").substring(7, results.attr("href").indexOf("&"));
+            String lyricURL = getlyricsUrlFromSearchUrl(SEARCH_BASE_URL + URLEncoder.encode("lyrics+azlyrics+" + artistU + "+" + trackU, "UTF-8"));
             Element element;
             String temp;
 
             if (lyricURL.contains("azlyrics.com/lyrics")) {
-                document = Jsoup.connect(lyricURL).userAgent("Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2228.0 Safari/537.36").get();
-                String page = document.toString();
+                String urlPrefix = lyricURL.contains("http") ? "" : "https://";
+                String page = Jsoup.connect(urlPrefix + lyricURL).userAgent("Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2228.0 Safari/537.36").get().toString();
 
                 page = page.substring(page.indexOf("that. -->") + 9);
                 page = page.substring(0, page.indexOf("</div>"));
@@ -84,14 +99,10 @@ public class FetchLyrics extends IntentService {
 
             } else {
 
-                url = "https://www.google.com/search?q=" + URLEncoder.encode("genius+" + artistU + "+" + trackU + "lyrics", "UTF-8");
-                document = Jsoup.connect(url).userAgent("Mozilla/5.0").timeout(10000).get();
-
-                results = document.select("h3.r > a").first();
-                lyricURL = results.attr("href").substring(7, results.attr("href").indexOf("&"));
+                lyricURL = getlyricsUrlFromSearchUrl(SEARCH_BASE_URL + URLEncoder.encode("genius+" + artistU + "+" + trackU + "lyrics", "UTF-8"));
                 if (lyricURL.contains("genius")) {
 
-                    document = Jsoup.connect(lyricURL).userAgent("Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2228.0 Safari/537.36").get();
+                    Document document = Jsoup.connect(lyricURL).userAgent("Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2228.0 Safari/537.36").get();
 
                     Elements selector = document.select("div.h2");
 
@@ -102,21 +113,12 @@ public class FetchLyrics extends IntentService {
                     element = document.select("div[class=song_body-lyrics]").first();
                     temp = element.toString().substring(0, element.toString().indexOf("<!--/sse-->"));
                 } else {
-
-                    url = "https://www.google.com/search?q=" + URLEncoder.encode("lyrics.wikia+" + trackU + "+" + artistU, "UTF-8");
-
-
-                    document = Jsoup.connect(url).userAgent("Mozilla/5.0").timeout(10000).get();
-
-                    results = document.select("h3.r > a").first();
-                    lyricURL = results.attr("href").substring(7, results.attr("href").indexOf("&"));
-                    document = Jsoup.connect(lyricURL).userAgent("Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2228.0 Safari/537.36").get();
+                    lyricURL = getlyricsUrlFromSearchUrl(SEARCH_BASE_URL + URLEncoder.encode("lyrics.wikia+" + trackU + "+" + artistU, "UTF-8"));
+                    Document document = Jsoup.connect(lyricURL).userAgent("Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2228.0 Safari/537.36").get();
 
                     element = document.select("div[class=lyricbox]").first();
                     temp = element.toString();
                 }
-
-
             }
 
             temp = temp.replaceAll("(?i)<br[^>]*>", "br2n");
@@ -134,10 +136,7 @@ public class FetchLyrics extends IntentService {
             writeToFile(lyrics); // write the lyrics to a text file
 
 
-        } catch (IOException e) {
-            e.printStackTrace();
-            noLyricsFound();
-        } catch (NullPointerException e) {
+        } catch (IOException | NullPointerException e) {
             e.printStackTrace();
             noLyricsFound();
         } finally {

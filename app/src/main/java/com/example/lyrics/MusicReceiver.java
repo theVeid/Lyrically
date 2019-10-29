@@ -7,9 +7,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.v7.app.NotificationCompat;
-
-import com.shkmishra.lyrically.LyricsService;
+import androidx.core.app.NotificationCompat;
 
 
 public class MusicReceiver extends BroadcastReceiver {
@@ -30,7 +28,7 @@ public class MusicReceiver extends BroadcastReceiver {
                     (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
             NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(context);
             Intent stopIntent = new Intent(context, StopService.class);
-            mBuilder.setContentTitle("Lyrically")
+            mBuilder.setContentTitle("Lyrics")
                     .setDeleteIntent(PendingIntent.getService(context, 0, stopIntent, 0)) // stop LyricsService when user swipes away the notification
                     .setOngoing(false)
                     .setPriority(Notification.PRIORITY_MIN)

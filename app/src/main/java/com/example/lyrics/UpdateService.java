@@ -8,7 +8,7 @@ import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.net.Uri;
-import android.support.v7.app.NotificationCompat;
+import androidx.core.app.NotificationCompat;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -31,7 +31,7 @@ public class UpdateService extends IntentService {
             PackageInfo pInfo = getPackageManager().getPackageInfo(getPackageName(), 0);
             String currentVersion = pInfo.versionName; // get the installed version
 
-            Document document = Jsoup.connect("https://github.com/shkcodes/Lyrically/releases").userAgent("Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2228.0 Safari/537.36").get();
+            Document document = Jsoup.connect("https://github.com/shkcodes/Lyrics/releases").userAgent("Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2228.0 Safari/537.36").get();
             Element element = document.select("li[class=d-block mb-1]").first();
             String latestVersion = element.select("span[class=css-truncate-target]").first().text(); // get the latest version
 
@@ -40,7 +40,7 @@ public class UpdateService extends IntentService {
                 NotificationManager mNotifyManager =
                         (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
                 NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(this);
-                Intent notificationIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/shkcodes/Lyrically/releases"));
+                Intent notificationIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/shkcodes/Lyrics/releases"));
 
                 PendingIntent contentIntent = PendingIntent.getActivity(this, 0, notificationIntent, 0);
 

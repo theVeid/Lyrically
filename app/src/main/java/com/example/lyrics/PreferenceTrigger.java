@@ -8,7 +8,7 @@ import android.graphics.PixelFormat;
 import android.os.IBinder;
 import android.os.Vibrator;
 import android.preference.PreferenceManager;
-import android.support.annotation.Nullable;
+import androidx.annotation.Nullable;
 import android.util.DisplayMetrics;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -42,19 +42,19 @@ public class PreferenceTrigger extends Service {
 
 
         vibrator = (Vibrator) getSystemService(VIBRATOR_SERVICE);
-        sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+        sharedPreferences = getApplicationContext().getSharedPreferences("lyrics", 0);
         displayMetrics = new DisplayMetrics();
         windowManager = (WindowManager) getSystemService(WINDOW_SERVICE);
         windowManager.getDefaultDisplay().getMetrics(displayMetrics);
 
-        int width = (sharedPreferences.getInt("triggerWidth", 10)) * 2;
-        int height = (sharedPreferences.getInt("triggerHeight", 10)) * 2;
+        int width = (sharedPreferences.getInt("triggerWidth", 50)) * 2;
+        int height = (sharedPreferences.getInt("triggerHeight", 50)) * 2;
 
 
         triggerParams = new WindowManager.LayoutParams(
                 width, height,
 
-                WindowManager.LayoutParams.TYPE_PHONE,
+                WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
 
                 WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS | WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
                 ,
@@ -67,7 +67,7 @@ public class PreferenceTrigger extends Service {
                 WindowManager.LayoutParams.MATCH_PARENT,
                 panelHeight,
 
-                WindowManager.LayoutParams.TYPE_PHONE,
+                WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
 
                 WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS
 
@@ -97,6 +97,7 @@ public class PreferenceTrigger extends Service {
 
         LayoutInflater layoutInflater = (LayoutInflater) getSystemService(LAYOUT_INFLATER_SERVICE);
         trigger = new View(this);
+
 
         trigger.setBackgroundColor(getResources().getColor(R.color.colorAccent));
 
@@ -142,7 +143,9 @@ public class PreferenceTrigger extends Service {
                                            super.onSwipeUp();
                                            if (swipeDirection == 1) {
                                                vibrate();
-                                               windowManager.addView(container, lyricsPanelParams);
+                                               try {
+                                                   windowManager.addView(container, lyricsPanelParams);
+                                               } catch (Exception e) {}
                                                container.addView(bottomLayout);
                                                Animation animation = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.slide_up);
                                                bottomLayout.startAnimation(animation);
@@ -186,7 +189,6 @@ public class PreferenceTrigger extends Service {
                                        }
                                    }
         );
-
         windowManager.addView(trigger, triggerParams);
 
 

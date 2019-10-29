@@ -1,3 +1,62 @@
 <resources>
     <string name="app_name">Lyrics</string>
+    <string name="menuSettings">Settings</string>
+    <string name="downloadingLyrics">Downloading lyrics</string>
+    <string name="lyricsDownloaded">Lyrics Downloaded</string>
+    <string name="noLyricsFound">No lyrics found</string>
+
+
+    <string name="download">Download</string>
+    <string name="downloadHelp">Download lyrics for offline usage</string>
+
+
+    <string name="tutorial">Tutorial</string>
+    <string name="tutorialHelp">Learn how to use this app</string>
+
+
+    <string name="source">Source</string>
+    <string name="sourceHelp">View the source code for this app</string>
+
+
+    <string name="about">Other Apps</string>
+    <string name="aboutHelp">Check out my other apps</string>
+    <string name="songTitleHint">Song Artist - Song Title</string>
+    <string name="lyricsHint">Your lyrics will appear here</string>
+    <string name="updateTitle">Update available</string>
+    <string name="updateText">Click here to update</string>
+    <string name="draw_over_other_apps">DRAW OVER OTHER APPS</string>
+    <string name="read_write_storage">READ / WRITE STORAGE</string>
+    <string name="permissions_toast">Lyrics - Please grant the proper permissions</string>
+    <string name="permissions_needed">Permissions Needed</string>
+    <string name="download_prompt">Download lyrics for %1$d songs?</string>
+    <string name="yes">Yes</string>
+    <string name="no">No</string>
+    <string name="please_wait">Please wait…</string>
+    <string name="noLyricsFoundNotification">Click here to see the songs whose lyrics were not found</string>
+
+
+    <string name="trigger_settings_title">Trigger Settings</string>
+    <string name="trigger_pos_summary">The position of the area which detects the swipe</string>
+    <string name="trigger_pos_title">Trigger Position</string>
+    <string name="trigger_offset_summary">Trigger Offset</string>
+    <string name="trigger_swipe_direction_summary">The direction in which you swipe to see the lyrics</string>
+    <string name="trigger_swipe_direction_title">Swipe Direction</string>
+    <string name="trigger_width_summary">Trigger Width</string>
+    <string name="trigger_height_summary">Trigger Height</string>
+    <string name="trigger_vibration_summary">Enable or disable vibration on trigger detection</string>
+    <string name="trigger_vibration_title">Vibration</string>
+    <string name="lyrics_panel_settings_title">Lyrics Panel Settings</string>
+    <string name="lyrics_panel_height_summary">Lyrics Panel Height</string>
+    <string name="cache_settings_title">Caching</string>
+    <string name="cache_all_summary">Cache all the lyrics shown by Lyrics</string>
+    <string name="cache_all_title">Cache All</string>
+
+    <string name="color_settings_title">Color Settings</string>
+    <string name="color_lyrics_panel">Lyrics Panel</string>
+    <string name="color_song_title">Song Title</string>
+    <string name="color_lyrics">Lyrics Text</string>
+
+    <string name="update_settings_title">Updates</string>
+    <string name="check_updates_title">Check For Updates</string>
+    <string name="check_updates_summary">Lyrics will check for updates once a week</string>
 </resources>

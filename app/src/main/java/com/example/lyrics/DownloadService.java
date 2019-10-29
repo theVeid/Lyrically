@@ -11,8 +11,9 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
 import android.os.Messenger;
-import android.support.annotation.Nullable;
-import android.support.v7.app.NotificationCompat;
+import androidx.annotation.Nullable;
+import androidx.core.app.NotificationCompat;
+import androidx.core.content.FileProvider;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -33,7 +34,7 @@ public class DownloadService extends Service {
                 (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
         final NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(this);
 
-        try { // try - catch for a crash which occurs if the user removes Lyrically from the recents while the lyrics are being downloaded
+        try { // try - catch for a crash which occurs if the user removes Lyrics from the recents while the lyrics are being downloaded
             songArrayList = intent.getParcelableArrayListExtra("songs");
             count = songArrayList.size();
         } catch (NullPointerException e) {
@@ -51,13 +52,13 @@ public class DownloadService extends Service {
                 notificationID,
                 mBuilder.build());
 
-        File path = new File(Environment.getExternalStorageDirectory() + File.separator + "Lyrically/");
+        File path = new File(getExternalFilesDir(null) + File.separator + "Lyrics/");
         final File notFound = new File(path, "No Lyrics Found.txt");
         notFound.delete();
         try {
             notFound.createNewFile();
             FileWriter fileWriter = new FileWriter(notFound);
-            fileWriter.write("This file can be found at /sdcard/Lyrically/No Lyrics Found.txt\n\n");
+            fileWriter.write("This file can be found at /sdcard/Lyrics/No Lyrics Found.txt\n\n");
             fileWriter.flush();
             fileWriter.close();
         } catch (IOException e) {
@@ -72,7 +73,9 @@ public class DownloadService extends Service {
                 if (count == progress) {
                     stopSelf();
                     Intent intent1 = new Intent(Intent.ACTION_VIEW);
-                    intent1.setDataAndType(Uri.fromFile(notFound), "text/*");
+                    Uri uri = FileProvider.getUriForFile(getApplicationContext(), BuildConfig.APPLICATION_ID + ".provider", notFound);
+                    intent1.setDataAndType(uri, "text/*");
+                    intent1.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
                     PendingIntent pendingIntent = PendingIntent.getActivity(DownloadService.this, 0, intent1, PendingIntent.FLAG_UPDATE_CURRENT);
                     mBuilder.setOngoing(false).setContentIntent(pendingIntent).setProgress(0, 0, false).setContentTitle(getResources().getString(R.string.noLyricsFoundNotification)).setContentText("").setAutoCancel(true);
                     mNotifyManager.notify(notificationID, mBuilder.build());
